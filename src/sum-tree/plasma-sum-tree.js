@@ -102,7 +102,7 @@ class PlasmaMerkleSumTree extends MerkleSumTree {
     return branch
   }
 
-   /**
+  /**
    * Returns an inclusion proof for the leaf at a given index.
    * @param {Number} index Index of the leaf to return a proof for.
    * @return {*} A serializaed TransferProof object.
@@ -143,14 +143,14 @@ class PlasmaMerkleSumTree extends MerkleSumTree {
     })
   }
 
-   /**
+  /**
    * Returns whether a given signature is valid on the hash.
    * @param {*} transactionHash The hash which was signed.
    * @param {*} signature The signature.
    * @return {*} A serializaed TransactionProof object.
    */
 
-  static checkSignature(transactionHash, signature) {
+  static checkSignature (transactionHash, signature) {
     return true
   }
 
@@ -163,10 +163,9 @@ class PlasmaMerkleSumTree extends MerkleSumTree {
    * @return {boolean} `true` if the transfer is in the tree, `false` otherwise.
    */
 
-  static checkTransferProof(transaction, transferIndex, transferProof, root) {
+  static checkTransferProof (transaction, transferIndex, transferProof, root) {
     if (transaction instanceof String || typeof transaction === 'string') {
       transaction = new Transaction(transaction)
-    
     }
     if (transferProof instanceof String || typeof transferProof === 'string') {
       transferProof = new TransferProof(transferProof)
@@ -186,7 +185,7 @@ class PlasmaMerkleSumTree extends MerkleSumTree {
     if (!this.checkSignature(transactionHash, signature)) return false
 
     let computedNode = new MerkleTreeNode(
-      transactionHash, 
+      transactionHash,
       transferProof.args.parsedSum
     )
     let leftSum = new BigNum(0)
@@ -194,8 +193,8 @@ class PlasmaMerkleSumTree extends MerkleSumTree {
     for (let i = 0; i < inclusionProof.length; i++) {
       const encodedSibling = inclusionProof[i]
       const sibling = new MerkleTreeNode(
-        new BigNum(encodedSibling.slice(0,32)).toString(16, 64),
-        new BigNum(encodedSibling.slice(32,48))
+        new BigNum(encodedSibling.slice(0, 32)).toString(16, 64),
+        new BigNum(encodedSibling.slice(32, 48))
       )
       if (path[i] === '0') {
         computedNode = PlasmaMerkleSumTree.parent(computedNode, sibling)
@@ -212,22 +211,22 @@ class PlasmaMerkleSumTree extends MerkleSumTree {
     return validSum && validRoot
   }
 
-   /**
+  /**
    * Returns an inclusion proof for the leaf at a given index.
    * @param {*} Transaction A transaction element in the sum tree's leaves.
    * @return {*} A serializaed TransactionProof object.
    */
 
-  getTransactionProof(transaction) {
+  getTransactionProof (transaction) {
     let transactionLeafIndices = []
     for (let leafIndex in this.leaves) {
-      if (this.leaves[leafIndex] == transaction) transactionLeafIndices.push(new BigNum(leafIndex).toNumber())
+      if (this.leaves[leafIndex] === transaction) transactionLeafIndices.push(new BigNum(leafIndex).toNumber())
     }
     const transferProofs = transactionLeafIndices.map((leafIndex) => {
       return this.getTransferProof(leafIndex)
     })
     return new TransactionProof({
-      transferProofs: transferProofs.map((transferProof) => {return transferProof.decoded})
+      transferProofs: transferProofs.map((transferProof) => { return transferProof.decoded })
     })
   }
 
@@ -239,7 +238,7 @@ class PlasmaMerkleSumTree extends MerkleSumTree {
    * @return {boolean} `true` if the transaction is in the tree, `false` otherwise.
    */
 
-  static checkTransactionProof(transaction, transactionProof, root) {
+  static checkTransactionProof (transaction, transactionProof, root) {
     const transferProofs = transactionProof.args.transferProofs.map((transferProof) => {return {args: transferProof}})
     return transferProofs.every((transferProof, transferIndex) => {
       return this.checkTransferProof(transaction, transferIndex, transferProof, root)
