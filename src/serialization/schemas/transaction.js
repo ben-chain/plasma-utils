@@ -5,7 +5,7 @@ const TransferSchema = require('./transfer')
 const TransactionSchema = new Schema({
   block: {
     type: Number,
-    length: 32,
+    length: 4,
     required: true
   },
   transfers: {
