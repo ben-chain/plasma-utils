@@ -2,7 +2,11 @@ const BigNum = require('bn.js')
 
 const MerkleSumTree = require('./sum-tree')
 const MerkleTreeNode = require('./merkle-tree-node')
-const Transaction = require('../serialization').models.Transaction
+const models = require('../serialization').models
+const Signature = models.Signature
+const Transaction = models.Transaction
+const TransferProof = models.TransferProof
+const TransactionProof = models.TransactionProof
 const constants = require('../constants')
 
 /**
@@ -98,56 +102,148 @@ class PlasmaMerkleSumTree extends MerkleSumTree {
     return branch
   }
 
-  /**
-   * Checks whether a given transaction was included in a specific tree.
-   * @param {Number} leafIndex Position of the transfer in the Merkle tree.
-   * @param {Transaction} transaction A Transaction object.
-   * @param {Number} transferIndex Which transfer to check.
-   * @param {*} proof An inclusion proof.
-   * @param {*} root The root node of the tree to check.
-   * @return {boolean} `true` if the transaction is in the tree, `false` otherwise.
+   /**
+   * Returns an inclusion proof for the leaf at a given index.
+   * @param {Number} index Index of the leaf to return a proof for.
+   * @return {*} A serializaed TransferProof object.
    */
-  static checkInclusion (leafIndex, transaction, transferIndex, inclusionProof, root) {
-    if (transaction instanceof String || typeof transaction === 'string') {
-      transaction = new Transaction(transaction)
+  getTransferProof (leafIndex) { // first arg is the index of the branch requested, second is the transfer that branch was included for
+    if (leafIndex >= this.levels[0].length || leafIndex < 0) {
+      throw new Error('Invalid leaf index')
     }
 
-    // Convert each element into a nicer object to work with.
-    // Each proof element is a 48 byte (96 character) string.
-    const proof = inclusionProof.map((element) => {
-      return {
-        hash: element.slice(0, 64),
-        sum: new BigNum(element.slice(-32), 'hex')
+    // User needs to be given this extra information for calculating the bottommost node.
+    const parsedSum = this.levels[0][leafIndex].sum
+
+    // Each TR proof gets the signature for that transfer's sender
+    const signature = new Signature('1bd693b532a80fed6392b428604171fb32fdbf953728a3a7ecc7d4062b1652c04224e9c602ac800b983b035700a14b23f78a253ab762deab5dc27e3555a750b354') // this.leaves[leafIndex].signatures[transferIndex]
+
+    let branch = []
+
+    let parentIndex
+    let node
+    let siblingIndex = leafIndex + (leafIndex % 2 === 0 ? 1 : -1)
+    for (let i = 0; i < this.levels.length - 1; i++) {
+      node = this.levels[i][siblingIndex]
+      if (node === undefined) {
+        node = PlasmaMerkleSumTree.emptyLeaf().data
       }
+
+      branch.push(node.data)
+
+      // Figure out the parent and then figure out the parent's sibling.
+      parentIndex = siblingIndex === 0 ? 0 : Math.floor(siblingIndex / 2)
+      siblingIndex = parentIndex + (parentIndex % 2 === 0 ? 1 : -1)
+    }
+    return new TransferProof({
+      parsedSum: parsedSum,
+      leafIndex: leafIndex,
+      inclusionProof: branch,
+      signature: signature.decoded
     })
+  }
+
+   /**
+   * Returns whether a given signature is valid on the hash.
+   * @param {*} transactionHash The hash which was signed.
+   * @param {*} signature The signature.
+   * @return {*} A serializaed TransactionProof object.
+   */
+
+  static checkSignature(transactionHash, signature) {
+    return true
+  }
+
+  /**
+   * Checks whether a given transaction was included in the right branch for a particula transfer.
+   * @param {Transaction} transaction A Transaction object.
+   * @param {Number} transferIndex Which transfer to check.
+   * @param {*} transferProof A TransferProof object.
+   * @param {*} root The root node of the tree to check.
+   * @return {boolean} `true` if the transfer is in the tree, `false` otherwise.
+   */
+
+  static checkTransferProof(transaction, transferIndex, transferProof, root) {
+    if (transaction instanceof String || typeof transaction === 'string') {
+      transaction = new Transaction(transaction)
+    
+    }
+    if (transferProof instanceof String || typeof transferProof === 'string') {
+      transferProof = new TransferProof(transferProof)
+    }
+
+    const leafIndex = transferProof.args.leafIndex
+    const inclusionProof = transferProof.args.inclusionProof
 
     // Covert the index into a bitstring
-    let path = new BigNum(leafIndex).toString(2, proof.length)
-
+    let path = new BigNum(leafIndex).toString(2, inclusionProof.length)
     // Reverse the order of the bitstring to start at the bottom of the tree
     path = path.split('').reverse().join('')
 
+    const transactionHash = PlasmaMerkleSumTree.hash('0x' + transaction.encoded)
+
+    const signature = transferProof.args.signature
+    if (!this.checkSignature(transactionHash, signature)) return false
+
+    let computedNode = new MerkleTreeNode(
+      transactionHash, 
+      transferProof.args.parsedSum
+    )
     let leftSum = new BigNum(0)
     let rightSum = new BigNum(0)
-    let pathIndex = 0
-    let proofElement
-    let computedNode = new MerkleTreeNode(PlasmaMerkleSumTree.hash('0x' + transaction.encoded), proof[0].sum)
-    for (let i = 1; i < proof.length; i++) {
-      proofElement = new MerkleTreeNode(proof[i].hash, proof[i].sum)
-      if (path[pathIndex] === '0') {
-        computedNode = PlasmaMerkleSumTree.parent(computedNode, proofElement)
-        rightSum.add(proof[i].sum)
+    for (let i = 0; i < inclusionProof.length; i++) {
+      const encodedSibling = inclusionProof[i]
+      const sibling = new MerkleTreeNode(
+        new BigNum(encodedSibling.slice(0,32)).toString(16, 64),
+        new BigNum(encodedSibling.slice(32,48))
+      )
+      if (path[i] === '0') {
+        computedNode = PlasmaMerkleSumTree.parent(computedNode, sibling)
+        rightSum.add(sibling.sum)
       } else {
-        computedNode = PlasmaMerkleSumTree.parent(proofElement, computedNode)
-        leftSum.add(proof[i].sum)
+        computedNode = PlasmaMerkleSumTree.parent(sibling, computedNode)
+        leftSum.add(sibling.sum)
       }
-      pathIndex++
     }
-
+    const rootSum = computedNode.sum
     const transfer = transaction.transfers[transferIndex].decoded
-    const validSum = transfer.start.gte(leftSum) && transfer.end.lte(computedNode.sum.sub(rightSum))
+    const validSum = transfer.start.gte(leftSum) && transfer.end.lte(rootSum.sub(rightSum))
     const validRoot = computedNode.data === root
     return validSum && validRoot
+  }
+
+   /**
+   * Returns an inclusion proof for the leaf at a given index.
+   * @param {*} Transaction A transaction element in the sum tree's leaves.
+   * @return {*} A serializaed TransactionProof object.
+   */
+
+  getTransactionProof(transaction) {
+    let transactionLeafIndices = []
+    for (let leafIndex in this.leaves) {
+      if (this.leaves[leafIndex] == transaction) transactionLeafIndices.push(new BigNum(leafIndex).toNumber())
+    }
+    const transferProofs = transactionLeafIndices.map((leafIndex) => {
+      return this.getTransferProof(leafIndex)
+    })
+    return new TransactionProof({
+      transferProofs: transferProofs.map((transferProof) => {return transferProof.decoded})
+    })
+  }
+
+  /**
+   * Checks whether a given transaction was included in the right branch for a particula transfer.
+   * @param {Transaction} transaction A Transaction object.
+   * @param {*} transactionProof A TransactionProof object.
+   * @param {*} root The root node of the tree to check.
+   * @return {boolean} `true` if the transaction is in the tree, `false` otherwise.
+   */
+
+  static checkTransactionProof(transaction, transactionProof, root) {
+    const transferProofs = transactionProof.args.transferProofs.map((transferProof) => {return {args: transferProof}})
+    return transferProofs.every((transferProof, transferIndex) => {
+      return this.checkTransferProof(transaction, transferIndex, transferProof, root)
+    })
   }
 }
 
