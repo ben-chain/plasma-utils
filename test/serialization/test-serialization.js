@@ -150,7 +150,6 @@ describe('Serialization', () => {
 
   describe('TransferProof', () => {
     it('shoud be correctly encoded', () => {
-      debugger
       const transferProof = new TransferProof(decodedTransferProof)
 
       transferProof.encoded.should.equal(encodedTransferProof)
