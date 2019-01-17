@@ -28,7 +28,7 @@ const decodedSignature = {
   s: '24e9c602ac800b983b035700a14b23f78a253ab762deab5dc27e3555a750b354'
 }
 
-const encodedTransaction = '0000000000000000000000000000000000000000000000000000000000000001' + '01' + encodedTransfer
+const encodedTransaction = '00000001' + '01' + encodedTransfer
 const decodedTransaction = {
   block: new BigNum('1', 'hex'),
   transfers: [
@@ -36,7 +36,7 @@ const decodedTransaction = {
   ]
 }
 
-const encodedSignedTransaction = '0000000000000000000000000000000000000000000000000000000000000001' + '01' + encodedTransfer + '01' + encodedSignature
+const encodedSignedTransaction = '00000001' + '01' + encodedTransfer + '01' + encodedSignature
 const decodedSignedTransaction = {
   block: new BigNum('1', 'hex'),
   transfers: [

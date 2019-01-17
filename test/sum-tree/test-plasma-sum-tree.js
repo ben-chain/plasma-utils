@@ -60,18 +60,19 @@ describe('PlasmaMerkleSumTree', () => {
     it('should generate a single-leaf tree correctly', () => {
       const tree = new PlasmaMerkleSumTree([tx1])
 
-      tree.root().data.should.equal('fc06a463e3d920cce96b4e5385fc4c7063d515a861ccb79ce0c49699a7685ee4' + 'ffffffffffffffffffffffffffffffff')
+      tree.root().data.should.equal('1b2e79791f28c27ed669f257397e1deb3e522cf1f27024c161b619d276a25315' + 'ffffffffffffffffffffffffffffffff')
     })
 
     it('should generate an even tree correctly', () => {
       const tree = new PlasmaMerkleSumTree([tx1, tx2])
 
-      tree.root().data.should.equal('f415c586263ae5bff92d841121f0de1fea5e0b51d44d0bfb60b8e596f50292b7' + 'ffffffffffffffffffffffffffffffff')
+      tree.root().data.should.equal('7aaef6ea48e7c8cbbcd8d65cecc3af23f851474ad8c558c4d0406323bd2ef2d8' + 'ffffffffffffffffffffffffffffffff')
     })
 
     it('should generate an odd tree w/ multiple types correctly', () => {
       const tree = new PlasmaMerkleSumTree([tx1, tx2, tx3])
-      tree.root().data.should.equal('257dbda67d08ac131f9304e3122ba0d821676acec8c0e3f3ea3b77c641d817e8' + 'ffffffffffffffffffffffffffffffff')
+
+      tree.root().data.should.equal('946535b614d2542d539f38349aeac9d0347246efed789880c33dfb62103cc7e7' + 'ffffffffffffffffffffffffffffffff')
     })
   })
 
