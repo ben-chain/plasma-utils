@@ -142,7 +142,7 @@ describe('Serialization', () => {
     })
 
     it('should be correctly decoded', () => {
-      const stx = new SignedTransaction(decodedSignedTransaction)
+      const stx = new SignedTransaction(encodedSignedTransaction)
 
       stx.decoded.should.deep.equal(decodedSignedTransaction)
     })
