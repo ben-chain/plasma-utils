@@ -92,7 +92,7 @@ describe('PlasmaMerkleSumTree', () => {
 
     it('should should not verify a TransferProof with an invalid index', () => {
       const transferProof = tree.getTransferProof(index)
-      transferProof.args.leafIndex +=1
+      transferProof.args.leafIndex += 1
 
       const trIndex = 0
 

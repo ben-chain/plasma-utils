@@ -239,7 +239,7 @@ class PlasmaMerkleSumTree extends MerkleSumTree {
    */
 
   static checkTransactionProof (transaction, transactionProof, root) {
-    const transferProofs = transactionProof.args.transferProofs.map((transferProof) => {return {args: transferProof}})
+    const transferProofs = transactionProof.args.transferProofs.map((transferProof) => { return { args: transferProof } })
     return transferProofs.every((transferProof, transferIndex) => {
       return this.checkTransferProof(transaction, transferIndex, transferProof, root)
     })
