@@ -6,7 +6,9 @@ const models = require('../../src/serialization').models
 const Transfer = models.Transfer
 const Signature = models.Signature
 const Transaction = models.Transaction
-const Proof = models.Proof
+const SignedTransaction = models.SignedTransaction
+const TransferProof = models.TransferProof
+const TransactionProof = models.TransactionProof
 
 const should = chai.should()
 
@@ -34,17 +36,31 @@ const decodedTransaction = {
   ]
 }
 
-const encodedProof = '01' + '00000000000000000000000000000003' + '00000000000000000000000000000004' + '01' + '563f225cdc192264a90e7e4b402815479c71a16f1593afa4fc6323e18583472affffffffffffffffffffffffffffffff' + encodedSignature
-const decodedProof = {
+const encodedSignedTransaction = '0000000000000000000000000000000000000000000000000000000000000001' + '01' + encodedTransfer + '01' + encodedSignature
+const decodedSignedTransaction = {
+  block: new BigNum('1', 'hex'),
+  transfers: [
+    decodedTransfer
+  ],
+  signatures: [
+    decodedSignature
+  ]
+}
+
+const encodedTransferProof = '00000000000000000000000000000003' + '00000000000000000000000000000004' + '01' + '563f225cdc192264a90e7e4b402815479c71a16f1593afa4fc6323e18583472affffffffffffffffffffffffffffffff' + encodedSignature
+const decodedTransferProof = {
+  parsedSum: new BigNum('3', 'hex'),
+  leafIndex: new BigNum('4', 'hex'),
+  inclusionProof: [
+    '563f225cdc192264a90e7e4b402815479c71a16f1593afa4fc6323e18583472affffffffffffffffffffffffffffffff'
+  ],
+  signature: decodedSignature
+}
+
+const encodedTransactionProof = '01' + encodedTransferProof
+const decodedTransactionProof = {
   transferProofs: [
-    {
-      parsedSum: new BigNum('3', 'hex'),
-      leafIndex: new BigNum('4', 'hex'),
-      inclusionProof: [
-        '563f225cdc192264a90e7e4b402815479c71a16f1593afa4fc6323e18583472affffffffffffffffffffffffffffffff'
-      ],
-      signature: decodedSignature
-    }
+    decodedTransferProof
   ]
 }
 
@@ -118,17 +134,45 @@ describe('Serialization', () => {
     })
   })
 
-  describe('Proof', () => {
-    it('should be correctly encoded', () => {
-      const proof = new Proof(decodedProof)
+  describe.skip('SignedTransaction', () => {
+    it('shoud be correctly encoded', () => {
+      const stx = new SignedTransaction(decodedSignedTransaction)
 
-      proof.encoded.should.equal(encodedProof)
+      stx.encoded.should.equal(encodedSignedTransaction)
     })
 
     it('should be correctly decoded', () => {
-      const proof = new Proof(encodedProof)
+      const stx = new SignedTransaction(decodedSignedTransaction)
 
-      proof.decoded.should.deep.equal(decodedProof)
+      stx.decoded.should.deep.equal(decodedSignedTransaction)
+    })
+  })
+
+  describe('TransferProof', () => {
+    it('shoud be correctly encoded', () => {
+      const transferProof = new TransferProof(decodedTransferProof)
+
+      transferProof.encoded.should.equal(encodedTransferProof)
+    })
+
+    it('shoud be correctly encoded', () => {
+      const transferProof = new TransferProof(encodedTransferProof)
+
+      transferProof.decoded.should.deep.equal(decodedTransferProof)
+    })
+  })
+
+  describe('TransactionProof', () => {
+    it('shoud be correctly encoded', () => {
+      const transactionProof = new TransactionProof(decodedTransactionProof)
+
+      transactionProof.encoded.should.equal(encodedTransactionProof)
+    })
+
+    it('shoud be correctly encoded', () => {
+      const transactionProof = new TransactionProof(encodedTransactionProof)
+
+      transactionProof.decoded.should.deep.equal(decodedTransactionProof)
     })
   })
 })

@@ -21,10 +21,4 @@ const TransferProofSchema = new Schema({
   }
 })
 
-const TransactionProofSchema = new Schema({
-  transferProofs: {
-    type: [TransferProofSchema]
-  }
-})
-
-module.exports = TransactionProofSchema
+module.exports = TransferProofSchema
