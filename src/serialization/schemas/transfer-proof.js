@@ -12,12 +12,12 @@ const TransferProofSchema = new Schema({
     type: Number,
     length: 16
   },
+  signature: {
+    type: Signature
+  },
   inclusionProof: {
     type: [Bytes],
     length: 48
-  },
-  signature: {
-    type: Signature
   }
 })
 

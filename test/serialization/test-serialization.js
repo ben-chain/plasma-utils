@@ -47,7 +47,7 @@ const decodedSignedTransaction = {
   ]
 }
 
-const encodedTransferProof = '00000000000000000000000000000003' + '00000000000000000000000000000004' + '01' + '563f225cdc192264a90e7e4b402815479c71a16f1593afa4fc6323e18583472affffffffffffffffffffffffffffffff' + encodedSignature
+const encodedTransferProof = '00000000000000000000000000000003' + '00000000000000000000000000000004' + encodedSignature + '01' + '563f225cdc192264a90e7e4b402815479c71a16f1593afa4fc6323e18583472affffffffffffffffffffffffffffffff'
 const decodedTransferProof = {
   parsedSum: new BigNum('3', 'hex'),
   leafIndex: new BigNum('4', 'hex'),
@@ -150,6 +150,7 @@ describe('Serialization', () => {
 
   describe('TransferProof', () => {
     it('shoud be correctly encoded', () => {
+      debugger
       const transferProof = new TransferProof(decodedTransferProof)
 
       transferProof.encoded.should.equal(encodedTransferProof)
