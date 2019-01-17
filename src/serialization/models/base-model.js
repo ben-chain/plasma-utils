@@ -11,7 +11,6 @@ class BaseModel {
     if (args instanceof String || typeof args === 'string') {
       args = this.schema.decode(args)
     }
-
     this.args = this.schema.cast(args)
     this.schema.validate(args)
   }

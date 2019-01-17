@@ -1,11 +1,15 @@
 const SignatureSchema = require('./signature')
 const TransferSchema = require('./transfer')
 const TransactionSchema = require('./transaction')
-const ProofSchema = require('./proof')
+const SignedTransactionSchema = require('./signed-transaction')
+const TransferProofSchema = require('./transfer-proof')
+const TransactionProofSchema = require('./transaction-proof')
 
 module.exports = {
   SignatureSchema,
   TransferSchema,
   TransactionSchema,
-  ProofSchema
+  SignedTransactionSchema,
+  TransferProofSchema,
+  TransactionProofSchema
 }
