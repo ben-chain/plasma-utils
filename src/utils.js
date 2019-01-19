@@ -50,13 +50,14 @@ function genRandomTX (blockNum, senderAddress, recipientAddress, numTransfers) {
       randomVals += new BN(randHex, 10).toString(16, 2)
     }
     randomTransfers +=
-    senderAddress.slice(2) +
-    recipientAddress.slice(2) +
-    randomVals
+      senderAddress.slice(2) +
+      recipientAddress.slice(2) +
+      randomVals
     // can't have invalid addresses so ignore this partthe 33rd byte is the numTransfers which isn't random--it's 4
   }
   return new BN(blockNum).toString(16, 8) + new BN(numTransfers).toString(16, 2) + randomTransfers
 }
+
 
 module.exports = {
   int32ToHex: int32ToHex,
