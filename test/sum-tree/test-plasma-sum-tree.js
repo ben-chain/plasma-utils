@@ -2,7 +2,7 @@ const chai = require('chai')
 
 const PlasmaMerkleSumTree = require('../../src/sum-tree/plasma-sum-tree')
 const Transaction = require('../../src/serialization').models.Transaction
-const txutils = require('../tx-utils')
+const utils = require('../../src/utils')
 
 const should = chai.should()
 
@@ -78,7 +78,7 @@ describe('PlasmaMerkleSumTree', () => {
 
   describe('Proof Checking', () => {
     const numDummyTransactions = 100
-    const txs = txutils.getSequentialTxs(numDummyTransactions)
+    const txs = utils.getSequentialTxs(numDummyTransactions)
     const tree = new PlasmaMerkleSumTree(txs)
     const index = Math.floor(Math.random() * numDummyTransactions)
     const tx = tree.leaves[index]
