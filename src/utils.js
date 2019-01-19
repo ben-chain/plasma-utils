@@ -18,8 +18,8 @@ const getSequentialTxs = (n) => {
     txs[i] = new Transaction({
       transfers: [
         {
-          sender: '0x0000000000000000000000000000000000000000',
-          recipient: '0x0000000000000000000000000000000000000000',
+          sender: '0x000000000000000f000000000000000000000000', // random fs here because contract crashes on decoding bytes20 of all zeros to address
+          recipient: '0x000000000000f000000000000000000000000000',
           token: 0,
           start: i * 10,
           end: (i + 1) * 10,
