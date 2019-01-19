@@ -1,4 +1,5 @@
 const Transaction = require('../src/serialization').models.Transaction
+const BN = require('web3').utils.BN
 
 const int32ToHex = (x) => {
   x &= 0xFFFFFFFF
