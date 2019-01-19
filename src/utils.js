@@ -58,7 +58,6 @@ function genRandomTX (blockNum, senderAddress, recipientAddress, numTransfers) {
   return new BN(blockNum).toString(16, 8) + new BN(numTransfers).toString(16, 2) + randomTransfers
 }
 
-
 module.exports = {
   int32ToHex: int32ToHex,
   getSequentialTxs: getSequentialTxs,
